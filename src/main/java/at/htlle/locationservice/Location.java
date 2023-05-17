@@ -1,7 +1,6 @@
-package at.htlle.locationfinder;
+package at.htlle.locationservice;
 
-public class Location 
-{
+public class Location {
 	String name;
 	Double latitude;
 	Double longitude;
@@ -19,8 +18,7 @@ public class Location
 		this.latitude = lat;
 		this.longitude = lon;
 	}
-	
-	
+
 	
 	public String getName() {
 		return name;
@@ -38,8 +36,7 @@ public class Location
 		return longitude;
 	}
 
-	public Double distanceTo(Location other) 
-	{
+	public Double distanceTo(Location other) {
 		double latitude1 = this.getLatitude();
 		double latitude2 = other.getLatitude();
 		double longitude1 = this.getLongitude();
@@ -58,8 +55,7 @@ public class Location
 	}
 	
 	
-	 public Double directionTo(Location other) 
-	 {
+	 public Double directionTo(Location other) {
 			double lat1 = this.getLatitude();
 			double lat2 = other.getLatitude();
 			double lon1 = this.getLongitude();
