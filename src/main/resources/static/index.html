@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>ORTSUCHE</title>
     <style>
         body {
@@ -16,10 +17,18 @@
 <button onclick="getLocation()">SUCHEN</button>
 <div id="result"></div>
 
+<h2>Nächstgelegenen Ort finden</h2>
+<label for="latitude">Breitengrad:</label>
+<input type="text" id="latitude" name="latitude">
+<label for="longitude">Längengrad:</label>
+<input type="text" id="longitude" name="longitude">
+<button onclick="findNearestLocation()">SUCHEN</button>
+<div id="nearestResult"></div>
+
 <script>
     function getLocation() {
         var place = document.getElementById("place").value;
-        fetch("/location?name=" + place)
+        fetch("/location?name=" + encodeURIComponent(place))
             .then(response => {
                 if (response.ok) {
                     return response.json();
@@ -35,6 +44,29 @@
             .catch(error => {
                 console.error("Fehler:", error);
                 document.getElementById("result").innerHTML = "Ort nicht gefunden.";
+            });
+    }
+
+    function findNearestLocation() {
+        var latitude = document.getElementById("latitude").value;
+        var longitude = document.getElementById("longitude").value;
+        fetch("/nearestlocation?latitude=" + encodeURIComponent(latitude) + "&longitude=" + encodeURIComponent(longitude))
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Fehler beim Abrufen des nächstgelegenen Orts.");
+                }
+            })
+            .then(data => {
+                var result = data.name + ": " + data.latitude + ", " + data.longitude;
+                var locationLink = "<a href='https://www.google.com/maps/search/?api=1&query=" + data.latitude + "," + data.longitude + "' target='_blank'>Google Maps</a>";
+                var routeLink = "<a href='https://www.google.com/maps/dir/?api=1&origin=" + latitude + "," + longitude + "&destination=" + data.latitude + "," + data.longitude + "' target='_blank'>Routenplaner</a>";
+                document.getElementById("nearestResult").innerHTML = result + "<br>" + locationLink + "<br>" + routeLink;
+            })
+            .catch(error => {
+                console.error("Fehler:", error);
+                document.getElementById("nearestResult").innerHTML = "Kein nächstgelegener Ort gefunden.";
             });
     }
 </script>

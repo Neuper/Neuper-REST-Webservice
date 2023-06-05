@@ -1,11 +1,11 @@
 package at.htlle.locationservice;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -48,5 +48,11 @@ class LocationController {
             }
         }
         return null;
+    }
+
+    @GetMapping("/nearestlocation")
+    public Location getNearestLocation(@RequestParam(value = "latitude") double latitude, @RequestParam(value = "longitude") double longitude) {
+        Location currentLocation = new Location("Current Location", latitude, longitude);
+        return knownLocations.stream().min(Comparator.comparingDouble(location -> location.distanceTo(currentLocation))).orElse(null);
     }
 }
