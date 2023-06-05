@@ -1,12 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Test</title>
+    <title>ORTSUCHE</title>
+    <style>
+        body {
+            background-color: #1A73E8;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-<h1>
-    lol
-</h1>
+<h1>Ortsuche</h1>
+<label for="place">Geben Sie den Ortsnamen ein:</label>
+<input type="text" id="place" name="place">
+<button onclick="getLocation()">SUCHEN</button>
+<div id="result"></div>
+
+<script>
+    function getLocation() {
+        var place = document.getElementById("place").value;
+        fetch("/location?name=" + place)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Fehler beim Abrufen des Standorts.");
+                }
+            })
+            .then(data => {
+                var result = data.name + ": " + data.latitude + ", " + data.longitude;
+                var link = "<a href='https://www.google.com/maps/search/?api=1&query=" + data.latitude + "," + data.longitude + "' target='_blank'>Google Maps</a>";
+                document.getElementById("result").innerHTML = result + "<br>" + link;
+            })
+            .catch(error => {
+                console.error("Fehler:", error);
+                document.getElementById("result").innerHTML = "Ort nicht gefunden.";
+            });
+    }
+</script>
 </body>
 </html>
