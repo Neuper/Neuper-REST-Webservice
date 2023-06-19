@@ -1,12 +1,14 @@
 package at.htlle.locationservice;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.io.File;
+import java.text.DecimalFormat;
+import java.util.*;
 
 @RestController
 class LocationController {
@@ -54,5 +56,42 @@ class LocationController {
     public Location getNearestLocation(@RequestParam(value = "latitude") double latitude, @RequestParam(value = "longitude") double longitude) {
         Location currentLocation = new Location("Current Location", latitude, longitude);
         return knownLocations.stream().min(Comparator.comparingDouble(location -> location.distanceTo(currentLocation))).orElse(null);
+    }
+
+    @GetMapping("/altitude")
+    public ResponseEntity<String> altitude(@RequestParam(value = "latitude") double latitude, @RequestParam(value = "longitude") double longitude) {
+        File file = new File("src/main/resources/srtm_40_03.asc");
+
+        SrtmFile srtmFile = new SrtmFile(file);
+
+        Location nearestLocation = Collections.min(knownLocations, Comparator.comparingDouble(l -> l.distanceTo(new Location("", latitude, longitude))));
+        Double azimuth = nearestLocation.directionTo(new Location("", latitude, longitude));
+        String direction = "";
+        if (azimuth >= 337.5 || azimuth < 22.5) {
+            direction = "Nördlich";
+        } else if (azimuth >= 22.5 && azimuth < 67.5) {
+            direction = "Nordöstlich";
+        } else if (azimuth >= 67.5 && azimuth < 112.5) {
+            direction = "Östlich";
+        } else if (azimuth >= 112.5 && azimuth < 157.5) {
+            direction = "Südöstlich";
+        } else if (azimuth >= 157.5 && azimuth < 202.5) {
+            direction = "Südlich";
+        } else if (azimuth >= 202.5 && azimuth < 247.5) {
+            direction = "Südwestlich";
+        } else if (azimuth >= 247.5 && azimuth < 292.5) {
+            direction = "Westlich";
+        } else if (azimuth >= 292.5 && azimuth < 337.5) {
+            direction = "Nordwestlich";
+        } else {
+            direction = "Unbekannte Richtung";
+        }
+        DecimalFormat decimalFormat = new DecimalFormat("0.0");
+        String name = direction + " von " + nearestLocation.getName() + " " + decimalFormat.format(nearestLocation.distanceTo(new Location("", latitude, longitude))) + " km";
+        Location location = new Location(name, latitude, longitude);
+
+        Optional<Double> altitude = srtmFile.getAltitudeForLocation(location);
+        String json = "{\"loc\":{\"name\":\"" + name + "\",\"latitude\":\"" + latitude + "\",\"longitude\":\"" + longitude + "\"},\"altitude\":\"" + altitude.get() + "\"}";
+        return ResponseEntity.ok().body(json);
     }
 }
