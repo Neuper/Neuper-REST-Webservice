@@ -94,4 +94,24 @@ class LocationController {
         String json = "{\"loc\":{\"name\":\"" + name + "\",\"latitude\":\"" + latitude + "\",\"longitude\":\"" + longitude + "\"},\"altitude\":\"" + altitude.get() + "\"}";
         return ResponseEntity.ok().body(json);
     }
+
+    @GetMapping("/elevationprofile")
+    public ResponseEntity<List<Double>> getElevationProfileBetween2Places(@RequestParam(value = "latitude_first") double latitude_first_place, @RequestParam(value = "longitude_first") double longitude_first_place, @RequestParam(value = "latitude_second") double latitude_second_place, @RequestParam(value = "longitude_second") double longitude_second_place, @RequestParam(value = "elevationprofilepoints") int elevation_profile_points) {
+        //First Location
+        Location first_location = new Location("First Place",latitude_first_place, longitude_first_place);
+        Location second_location = new Location("Second Place",latitude_second_place, longitude_second_place);
+
+        List<Location> intermediateLocations = first_location.calculateIntermediatelocations(second_location, elevation_profile_points);
+
+        List<Double> elevations = new ArrayList<>();
+        for (Location intermediateLocation : intermediateLocations) {
+            File file = new File("src/main/resources/srtm_40_03.asc");
+            SrtmFile srtmFile = new SrtmFile(file);
+            Optional<Double> altitude = srtmFile.getAltitudeForLocation(intermediateLocation); //Here is starting the 'bottleneck'
+            elevations.add(altitude.get());
+        }
+
+        System.out.println(elevations);
+        return ResponseEntity.ok(elevations);
+    }
 }

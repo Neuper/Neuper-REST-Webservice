@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Webanwendung</title>
     <meta charset="UTF-8">
-    <title>ORTSUCHE</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
             background-color: #1A73E8;
@@ -11,6 +12,69 @@
     </style>
 </head>
 <body>
+<h1>Höhenprofildiagramm</h1>
+
+<form>
+    <label for="latitude_first">Latitude 1:</label>
+    <input type="text" id="latitude_first" name="latitude_first"><br><br>
+
+    <label for="longitude_first">Longitude 1:</label>
+    <input type="text" id="longitude_first" name="longitude_first"><br><br>
+
+    <label for="latitude_second">Latitude 2:</label>
+    <input type="text" id="latitude_second" name="latitude_second"><br><br>
+
+    <label for="longitude_second">Longitude 2:</label>
+    <input type="text" id="longitude_second" name="longitude_second"><br><br>
+
+    <button type="button" onclick="fetchData()">Diagramm anzeigen</button>
+</form>
+
+<div id="chart"></div>
+
+<script>
+    function fetchData() {
+        var latitudeFirst = document.getElementById('latitude_first').value;
+        var longitudeFirst = document.getElementById('longitude_first').value;
+        var latitudeSecond = document.getElementById('latitude_second').value;
+        var longitudeSecond = document.getElementById('longitude_second').value;
+
+        var url = `http://localhost:8080/elevationprofile?latitude_first=${latitudeFirst}&longitude_first=${longitudeFirst}&latitude_second=${latitudeSecond}&longitude_second=${longitudeSecond}&elevationprofilepoints=16`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                var yData = data.slice(0, 16); // Y-Achsen-Daten aus dem Array extrahieren
+
+                var layout = {
+                    title: 'Höhenprofildiagramm',
+                    xaxis: {
+                        title: 'Entfernung',
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Höhe',
+                        showline: false
+                    }
+                };
+
+                var trace = {
+                    x: Array.from({length: yData.length}, (_, i) => i + 1), // X-Achsen-Daten erzeugen
+                    y: yData,
+                    type: 'scatter'
+                };
+
+                var chartData = [trace];
+
+                Plotly.newPlot('chart', chartData, layout);
+            })
+            .catch(error => {
+                console.log('Fehler beim Abrufen der Daten:', error);
+            });
+    }
+</script>
+
+
 <h1>Ortsuche</h1>
 <label for="place">Geben Sie den Ortsnamen ein:</label>
 <input type="text" id="place" name="place">
